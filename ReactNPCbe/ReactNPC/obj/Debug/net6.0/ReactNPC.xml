@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ReactNPC</name>
+    </assembly>
+    <members>
+        <member name="T:ReactNPC.Controllers.UserController">
+            <summary>
+            Api controller
+            </summary>
+        </member>
+        <member name="M:ReactNPC.Controllers.UserController.#ctor(ReactNPC.Models.UserDbContext)">
+            <summary>
+            Creates userDBcontext
+            </summary>
+            <param name="userDbContext"></param>
+        </member>
+        <member name="M:ReactNPC.Controllers.UserController.GetUsers">
+            <summary>
+            Processes get request
+            </summary>
+            <returns>Returns users info</returns>
+        </member>
+        <member name="M:ReactNPC.Controllers.UserController.AddUser(ReactNPC.Models.User)">
+            <summary>
+            Processes post request
+            </summary>
+            <param name="objUser">New user entry</param>
+            <returns>Returns objUser if given email does not exists already</returns>
+        </member>
+        <member name="M:ReactNPC.Controllers.UserController.UpdateUser(ReactNPC.Models.User)">
+            <summary>
+            Processes patch request
+            </summary>
+            <param name="objUser">Current user entry</param>
+            <returns>Returns objUser if given email does not exists already</returns>
+        </member>
+        <member name="M:ReactNPC.Controllers.UserController.DeleteUser(System.Int32)">
+            <summary>
+            Processes delete request
+            </summary>
+            <param name="id">User's ID</param>
+            <returns>Returns true after deleting the user</returns>
+        </member>
+        <member name="M:ReactNPC.Controllers.UserController.LoginUser(System.String)">
+            <summary>
+            Processes login request
+            </summary>
+            <param name="email">User's email</param>
+            <returns>Returns password if user with given email exists</returns>
+        </member>
+        <member name="T:ReactNPC.Migrations.initial">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactNPC.Migrations.initial.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactNPC.Migrations.initial.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactNPC.Migrations.initial.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ReactNPC.Models.User">
+            <summary>
+            Database table model
+            </summary>
+        </member>
+        <member name="T:ReactNPC.Models.UserDbContext">
+            <summary>
+            Provides connnnection with database
+            </summary>
+        </member>
+        <member name="M:ReactNPC.Models.UserDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{ReactNPC.Models.UserDbContext})">
+            <summary>
+            Constructs a new context instance
+            </summary>
+            <param name="options">Carries all the required configuration information</param>
+        </member>
+        <member name="P:ReactNPC.Models.UserDbContext.User">
+            <summary>
+            Represents the collection of entities
+            </summary>
+        </member>
+        <member name="M:ReactNPC.Models.UserDbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)">
+            <summary>
+            Sets connection string
+            </summary>
+            <param name="optionsBuiler">Provides an API surface for configuring DbContextOptions.</param>
+        </member>
+    </members>
+</doc>

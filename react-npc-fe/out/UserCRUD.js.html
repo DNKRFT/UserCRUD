@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: UserCRUD.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: UserCRUD.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import axios from "axios";
+import { useEffect, useState } from "react";
+import bcrypt from 'bcryptjs';
+ 
+/** 
+ * @module UserCRUD
+ */
+/**
+ * Main UI
+ * @returns Returns UI
+ */
+function UserCRUD() {
+ 
+  //Input data storage
+  const [Id, setId] = useState("");
+  const [Name, setName] = useState("");
+  const [LastName, setLastName] = useState("");
+  const [Email, setEmail] = useState("");
+  const [Password, setPassword] = useState("");
+  const [Category, setCategory] = useState("Business");
+  const [SubCategory, setSubCategory] = useState("Boss");
+  const [Other, setOther] = useState("");
+  const [PhoneNumber, setPhoneNumber] = useState("");
+  const [Birthdate, setBirthdate] = useState("");
+
+  //View mode(0-register, 1-update, 2-login)
+  var [mode, setMode] = useState(2);
+
+  //User details
+  var [showUser, setShowUser] = useState(false);
+  var [currentUser, setCurrentUser] = useState();
+
+  //Collection of users from db
+  var [users, setUsers] = useState([]);
+
+    useEffect(() => {
+      (async () => await Load())();
+    }, []);
+    
+    /**
+     * Gets collection of users from database (sends info to the server)
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    async function Load() {
+      
+      const result = await axios.get("https://localhost:7228/api/User/GetUser");
+      setUsers(result.data);
+    }
+
+    /**
+     * Adds user into database if given data is correct (sends info to the server)
+     * @param {*} event Stores user details
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    async function save(event) {
+    
+      event.preventDefault();
+
+      //Regular expressions taken from the web
+      var emailRegex = /^[a-zA-Z0-9.!#$%&amp;'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+      var pasRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&amp;\*])(?=.{8,})");
+
+      //These are mine ;)
+      var phoneRegex = new RegExp("^[0-9]{9}");
+      var dateRegex = new RegExp("^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}");
+
+      //Stores form correctness
+      var isCorrect=true;
+
+      //String of merged input errors
+      var alertInfo="";
+
+      //Local variables
+      var SubCategoryX=SubCategory;
+      var OtherX=Other;
+      
+
+      //Correct categories data 
+      if(Category==="Business"){
+        OtherX="-";
+      }else if (Category==="Other"){
+        SubCategoryX="-";
+      }else if (Category==="Private"){
+        SubCategoryX="-";
+        OtherX="-";
+      }
+      
+
+      //Check if input data is correct
+      if(Name===""){
+        isCorrect=false;
+        alertInfo+="Input your name. ";
+      }
+
+      if(LastName===""){
+        isCorrect=false;
+        alertInfo+="Input your last name. ";
+      }
+
+      if(!Email.match(emailRegex)){
+        isCorrect=false;
+        alertInfo+="Incorrect email form. ";
+      }
+
+      if(!Password.match(pasRegex)){
+        isCorrect=false;
+        alertInfo+="Password to weak. Password must contain at least 1 lowercase alphabetical character, 1 uppercase alphabetical character, 1 numeric character, 1 special character, and be 8 characters or longer. ";
+      }
+
+      if(!PhoneNumber.match(phoneRegex)){
+        isCorrect=false;
+        alertInfo+="Incorrect phone number. ";
+      }
+
+      if(!Birthdate.match(dateRegex)){
+        isCorrect=false;
+        alertInfo+="Incorrect date form. ";
+      }
+
+      try {
+        if(isCorrect){
+          const result = await axios.post("https://localhost:7228/api/User/AddUser", {
+            name: Name,
+            lastName: LastName,
+            email: Email,
+            password: bcrypt.hashSync(Password,10),
+            category: Category,
+            subCategory: SubCategoryX,
+            other: OtherX,
+            phoneNumber: PhoneNumber,
+            birthdate: Birthdate
+            
+            });
+
+            //Checks if given email already exists
+            if(result.data!=""){
+              alert("User added");
+              //Clears input fields and sets defaults
+              setId("");
+              setName("");
+              setLastName("");
+              setEmail("");
+              setPassword("");
+              setCategory("Business");
+              setSubCategory("Boss");
+              setOther("");
+              setPhoneNumber("");
+              setBirthdate("");
+            }else{
+              alert("Given email already exsts");
+            }
+            
+            
+        }else{
+
+          //Shows errors if input is not correct
+          alert(alertInfo);
+        }
+      
+        Load();
+      } catch (err) {
+        alert(err);
+      }
+    }
+   
+    /**
+     * Fills input fields with selected user data while editing the entry
+     * @param {Object} user Current user object
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    async function EditUser(user) {
+      setName(user.name);
+      setLastName(user.lastName);
+      setEmail(user.email);
+      setPassword(user.password);
+      setCategory(user.category);
+      setSubCategory(user.subCategory);
+      setOther(user.user);
+      setPhoneNumber(user.phoneNumber);
+      setBirthdate(user.birthdate);
+      setMode(1);
+    
+      setId(user.id);
+    }
+   
+    /**
+     * Deletes user from db (sends info to the server)
+     * @param {number} Id Selected user's ID
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    async function DeleteUser(Id) {
+    await axios.delete("https://localhost:7228/api/User/DeleteUser/" + Id);
+     alert("User deleted");
+     setId("");
+     setName("");
+     setLastName("");
+     setEmail("");
+     setPassword("");
+     setCategory("Business");
+     setSubCategory("Boss");
+     setOther("");
+     setPhoneNumber("");
+     setBirthdate("");
+     Load();
+     setMode(0);
+    }
+   
+    /**
+     * Edits user info if given data is correct (sends info to the server)
+     * @param {*} event Stores user details
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    async function update(event) {
+      event.preventDefault();
+
+      var emailRegex = /^[a-zA-Z0-9.!#$%&amp;'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+      var pasRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&amp;\*])(?=.{8,})");
+      var phoneRegex = new RegExp("^[0-9]{9}");
+      var dateRegex = new RegExp("^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}");
+
+      var isCorrect=true;
+      var alertInfo="";
+
+      var SubCategoryX=SubCategory;
+      var OtherX=Other;
+      
+      if(Category==="Business"){
+        OtherX="-";
+      }else if (Category==="Other"){
+        SubCategoryX="-";
+      }else if (Category==="Private"){
+        SubCategoryX="-";
+        OtherX="-";
+      }
+      
+      if(Name===""){
+        isCorrect=false;
+        alertInfo+="Input your name. ";
+      }
+
+      if(LastName===""){
+        isCorrect=false;
+        alertInfo+="Input your last name. ";
+      }
+
+      if(!Email.match(emailRegex)){
+        isCorrect=false;
+        alertInfo+="Incorrect email form. ";
+      }
+
+      if(!Password.match(pasRegex)){
+        isCorrect=false;
+        alertInfo+="Password to weak. Password must contain at least 1 lowercase alphabetical character, 1 uppercase alphabetical character, 1 numeric character, 1 special character, and be 8 characters or longer. ";
+      }
+
+      if(!PhoneNumber.match(phoneRegex)){
+        isCorrect=false;
+        alertInfo+="Incorrect phone number. ";
+      }
+
+      if(!Birthdate.match(dateRegex)){
+        isCorrect=false;
+        alertInfo+="Incorrect date form. ";
+      }
+
+      try {
+        if(isCorrect){
+
+          const result = await axios.patch("https://localhost:7228/api/User/UpdateUser/"+ users.find((u) => u.id === Id).id || Id,
+          {
+          id: Id,
+          name: Name,
+          lastName: LastName,
+          email: Email,
+          password: bcrypt.hashSync(Password,10),
+          category: Category,
+          subCategory: SubCategoryX,
+          other: OtherX,
+          phoneNumber: PhoneNumber,
+          birthdate: Birthdate,
+          }
+        );
+        //Checks if given email already exists
+        if(result.data!=""){
+          alert("User edited");
+          setShowUser(false);
+          setId("");
+          setName("");
+          setLastName("");
+          setEmail("");
+          setPassword("");
+          setCategory("Business");
+          setSubCategory("Boss");
+          setOther("");
+          setPhoneNumber("");
+          setBirthdate("");
+          setMode(0);
+        }else{
+          alert("Given email already exsts");
+        }
+        
+
+        }else{
+          alert(alertInfo);
+        }
+    
+        Load();
+      } catch (err) {
+        alert(err);
+      }
+    }
+
+    
+    /**
+     * Shows user details
+     * @param {Object} currentUser User whose data is being shown
+     * @memberof module:UserCRUD
+     * @inner
+     * @returns Returns row of currentUser data
+     */
+    function ShowUser(currentUser) {
+      
+      return (
+        &lt;>
+        &lt;td>{currentUser.id}&lt;/td>
+        &lt;td>{currentUser.name}&lt;/td>
+        &lt;td>{currentUser.lastName}&lt;/td>
+        &lt;td>{currentUser.email}&lt;/td>
+        &lt;td>{currentUser.password}&lt;/td>
+        &lt;td>{currentUser.category}&lt;/td>
+        &lt;td>{currentUser.subCategory}&lt;/td>
+        &lt;td>{currentUser.other}&lt;/td>
+        &lt;td>{currentUser.phoneNumber}&lt;/td>
+        &lt;td>{currentUser.birthdate}&lt;/td>
+        &lt;/>
+      );
+    }
+
+    /**
+     * Logs the user in (sends info to the server)
+     * @param {*} event Stores user details
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    async function login(event) {
+      event.preventDefault();
+      try{
+        const result = await axios.get("https://localhost:7228/api/User/LoginUser/"+Email);
+       bcrypt.compare(Password,result.data, function(err, isMatch){
+        if(err){
+          throw err;
+        }else if (!isMatch){
+          alert("Incorrect credentials");
+        }else{
+          alert("Logged in");
+          setMode(0);
+        }
+       })
+
+       setEmail("");
+       setPassword("");
+
+       Load();
+       
+      }catch (err){
+        alert("Fill all the fields");
+      }
+    
+    }
+
+    /**
+     * Sets login view mode
+     * @param {*} event Stores user details
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    function setMode2(event) {
+      event.preventDefault();
+      setMode(2);
+    }
+
+    /**
+     * Sets register view mode
+     * @param {*} event Stores user details
+     * @memberof module:UserCRUD
+     * @inner
+     */
+    function setMode0(event) {
+      event.preventDefault();
+      setMode(0);
+      setId("");
+      setName("");
+      setLastName("");
+      setEmail("");
+      setPassword("");
+      setCategory("Business");
+      setSubCategory("Boss");
+      setOther("");
+      setPhoneNumber("");
+      setBirthdate("");
+    }
+
+    return (
+      &lt;div>
+        &lt;div>
+        &lt;h1>CIA DATABASE&lt;/h1>
+        {/* Data input fields */}
+      &lt;div className="container">
+        &lt;form>
+          {mode!=2
+          ? &lt;>
+            &lt;div>
+              &lt;input
+                type="text"
+                id="Id"
+                hidden
+                value={Id}
+                onChange={(event) => {
+                  setId(event.target.value);
+                }}
+              />
+              &lt;label>Name &lt;/label>
+              &lt;input
+                type="text"
+                id="Name"
+                value={Name}
+                onChange={(event) => {
+                  setName(event.target.value);
+                }}
+              />
+            &lt;/div>
+            &lt;div>
+              &lt;label>Last Name  &lt;/label>
+              &lt;input
+                type="text"
+                id="LastName"
+                value={LastName}
+                onChange={(event) => {
+                  setLastName(event.target.value);
+                }}
+              />
+            &lt;/div>
+            &lt;/>
+          : &lt;>&lt;/>
+          }
+          
+          &lt;div>
+            &lt;label>Email  &lt;/label>
+            &lt;input
+              type="text"
+              id="Email"
+              value={Email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+              }}
+            />
+          &lt;/div>
+          &lt;div>
+            &lt;label>Password &lt;/label>
+            &lt;input
+              type="password"
+              id="Password"
+              value={Password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+              }}
+            />
+          &lt;/div>
+          {mode!=2
+          ?&lt;>
+            &lt;div>
+              &lt;label>Category &lt;/label>
+              &lt;select id="Category"
+                value={Category}
+                onChange={(event) => {
+                  setCategory(event.target.value);
+                }}>
+                &lt;option value="Business">Business&lt;/option>
+                &lt;option value="Private">Private&lt;/option>
+                &lt;option value="Other">Other&lt;/option>
+              &lt;/select>
+          &lt;/div>
+          {Category==="Business" ?
+            &lt;>
+            &lt;div>
+              &lt;label>Subcategory  &lt;/label>
+              &lt;select id="SubCategory"
+                value={SubCategory}
+                onChange={(event) => {
+                  setSubCategory(event.target.value);
+                }}>
+                &lt;option value="Boss">Boss&lt;/option>
+                &lt;option value="Employee">Employee&lt;/option>
+                &lt;option value="Customer">Customer&lt;/option>
+              &lt;/select>
+            &lt;/div>
+            &lt;/>
+            :&lt;>&lt;/>
+          }
+          {Category==="Other" ?
+            &lt;>
+            &lt;div>
+              &lt;label>Other  &lt;/label>
+              &lt;input
+                type="text"
+                id="Other"
+                value={Other}
+                onChange={(event) => {
+                  setOther(event.target.value);
+                }}
+              />
+            &lt;/div>
+            &lt;/>
+          : &lt;>&lt;/>
+          }
+          &lt;div>
+            &lt;label>Phone Number  &lt;/label>
+            &lt;input
+              placeholder="123456789"
+              type="text"
+              id="PhoneNumber"
+              value={PhoneNumber}
+              onChange={(event) => {
+                setPhoneNumber(event.target.value);
+              }}
+            />
+          &lt;/div>
+          &lt;div>
+            &lt;label>Birthdate  &lt;/label>
+            &lt;input
+              placeholder="DD-MM-YYYY"
+              type="text"
+              id="Birthdate"
+              value={Birthdate}
+              onChange={(event) => {
+                setBirthdate(event.target.value);
+              }}
+            />
+          &lt;/div>
+          &lt;/>
+          : &lt;>&lt;/>
+          }
+          &lt;div>
+          {mode===0        
+          ? &lt;>&lt;button onClick={save}>Register&lt;/button>
+            &lt;button onClick={setMode2}>Logout&lt;/button>&lt;/>
+          : mode===1 ? &lt;>&lt;button onClick={update}>Update&lt;/button>
+          &lt;button onClick={setMode0}>Cancel&lt;/button>&lt;/>
+          : &lt;button onClick={login}>Login&lt;/button>      }
+          &lt;/div>
+        &lt;/form>
+      &lt;/div>
+      &lt;br>&lt;/br>
+ 
+      {/* User details */}
+      &lt;div>
+      {showUser ?
+      &lt;>
+        &lt;table align="center">
+          &lt;thead>
+            &lt;tr>
+              &lt;th scope="col">Id&lt;/th>
+              &lt;th scope="col">Name&lt;/th>
+              &lt;th scope="col">Last Name&lt;/th>
+              &lt;th scope="col">Email&lt;/th>
+              &lt;th scope="col">Password&lt;/th>
+              &lt;th scope="col">Category&lt;/th>
+              &lt;th scope="col">Subcategory&lt;/th>
+              &lt;th scope="col">Other&lt;/th>
+              &lt;th scope="col">Phone Number&lt;/th>
+              &lt;th scope="col">Birthdate&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+          &lt;tr>
+                 
+           &lt;>{ShowUser(currentUser)}&lt;/>
+          
+          &lt;/tr>
+        &lt;/tbody>
+        &lt;/table>
+        &lt;br>&lt;/br>
+        &lt;div className="container">
+          &lt;button 
+            allign="center"
+            type="button"
+            onClick={() => setShowUser(false)}
+          >
+            X
+          &lt;/button>&lt;/div>
+        &lt;/>
+        : &lt;>&lt;/>}
+      &lt;/div>
+      &lt;br>&lt;/br>
+      &lt;br>&lt;/br>
+      {/* Users table */}
+      &lt;table className="preview" align="center">
+        &lt;thead>
+          &lt;tr>
+            &lt;th scope="col">Name&lt;/th>
+            &lt;th scope="col">Last Name&lt;/th>
+            &lt;th scope="col">Phone Number&lt;/th>
+            &lt;th scope="col">Option&lt;/th>
+          &lt;/tr>
+        &lt;/thead>
+
+        {users.map(function fn(user) {
+          return (
+            &lt;tbody key={user.id}>
+              &lt;tr>
+                &lt;td>{user.name}&lt;/td>
+                &lt;td>{user.lastName}&lt;/td>
+                &lt;td>{user.phoneNumber}&lt;/td>
+                &lt;td>
+                  &lt;button
+                    type="button"
+                    onClick={() => {setShowUser(true);setCurrentUser(user)}}
+                  >
+                    More
+                  &lt;/button>
+                  {mode!=2
+                  ?&lt;>
+                    &lt;button
+                    type="button"
+                    onClick={() => EditUser(user)}
+                  >
+                    Edit
+                  &lt;/button>
+                  &lt;button
+                    type="button"
+                    onClick={() => DeleteUser(user.id)}
+                  >
+                    Delete
+                  &lt;/button>
+                  &lt;/>
+                  :&lt;>&lt;/>
+                  }
+                &lt;/td>
+              &lt;/tr>
+            &lt;/tbody>
+          );
+        })}
+      &lt;/table>
+      &lt;/div>
+      &lt;/div>
+    );
+  }
+  
+  export default UserCRUD;
+  
+  </code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-UserCRUD.html">UserCRUD</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 31 2023 17:12:38 GMT+0200 (czas środkowoeuropejski letni)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

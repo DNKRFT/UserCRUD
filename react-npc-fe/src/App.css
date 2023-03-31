@@ -1,0 +1,67 @@
+body {
+  background-color: rgb(195, 221, 255);
+}
+input {
+  border: 2px solid rgb(19, 110, 190);
+  border-radius: 5px;
+  background-color: rgb(215, 225, 247);
+}
+
+button {
+  background-color: rgb(75, 131, 180); 
+  border: solid;
+  border-color: rgb(100, 234, 241);
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 1px;
+}
+
+table, th, td {
+  border: 5px solid;
+  border-collapse: collapse;
+  border-color:#25497c;
+  background-color:rgb(215, 225, 247);
+  
+}
+
+th {
+  
+  padding: 5px 10px;
+}
+
+td {
+  
+  padding: 5px 10px;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+
+h1{
+  text-align: center;
+}
+
+button:hover {background-color: rgb(112, 200, 215);}
+
+.preview{
+  margin-bottom: 50px;
+}
+
+select{
+  border: 2px solid rgb(19, 110, 190);
+  border-radius: 5px;
+  background-color: rgb(215, 225, 247);
+}
+
+option{
+  background-color: white;
+}
+
